@@ -1,3 +1,5 @@
+### Modified from https://github.com/mikelove/swimdown/tree/brain_exprs/simulate
+### http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_26
 cortex_tpm <- read.delim("../frontal_cortex.tsv.gz", skip=2)
 # average over the 10 samples
 quants <- data.frame(Name = cortex_tpm$transcript_id,
@@ -6,9 +8,10 @@ quants <- data.frame(Name = cortex_tpm$transcript_id,
 quants$TPM <- quants$TPM * 1e6 / sum(quants$TPM)
 
 suppressPackageStartupMessages(library(GenomicFeatures))
-
-gtf <- "gencode.v26.annotation.gtf.gz"
-txdb.filename <- "gencode.v26.annotation.sqlite"
+ann_dir <- "annotation"
+save_dir <- "annotation"
+gtf <- file.path(ann_dir, "gencode.v26.annotation.gtf.gz")
+txdb.filename <- file.path(ann_dir, "gencode.v26.annotation.sqlite")
 #gtf <- "gencode.v26.annotation.gtf.gz"
 #txdb <- makeTxDbFromGFF(gtf)
 #saveDb(txdb, txdb.filename)
@@ -34,12 +37,12 @@ quant.tpm[quants$NumReads < 10] <- 0
 quant.len <- quants$Length
 
 # http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_26/gencode.v26.transcripts.fa.gz
-fasta0 <- "gencode.v26.transcripts.fa.gz"
-fasta <- "gencode.v26.transcripts.short.names.fa"
+fasta0 <- file.path(ann_dir, "gencode.v26.transcripts.fa.gz")
+fasta <- file.path(save_dir, "gencode.v26.transcripts.short.names.fa")
 suppressPackageStartupMessages(library(Biostrings))
 txseq <- readDNAStringSet(fasta0)
 names(txseq) <- sub("\\|.*","",names(txseq))
-writeXStringSet(txseq, file=fasta)
+writeXStringSet(txseq, file= fasta)
 #gc <- as.numeric(letterFrequency(txseq, "GC", as.prob=TRUE))
 
 
@@ -167,7 +170,7 @@ sim.counts.mat <- sim.counts.mat[keep,]
 all(rownames(sim.counts.mat) %in% names(txseq))
 txseq <- txseq[ rownames(sim.counts.mat) ]
 stopifnot(all(names(txseq) == rownames(sim.counts.mat)))
-writeXStringSet(txseq, "transcripts.fa")
+writeXStringSet(txseq, file.path(save_dir, "transcripts.fa"))
 
 # the format for polyester
 fold_changes <- matrix(1,nrow=nrow(sim.counts.mat),ncol=2)
